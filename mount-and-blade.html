@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>骑砍跑商物价与推荐路线</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.5); }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    .badge-nord { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-vaegirs { background: rgba(14, 165, 233, 0.15); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3); }
+    .badge-swadia { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-rhodoks { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-khergits { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-sarranid { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-neutral { background: rgba(107, 114, 128, 0.15); color: #6b7280; border: 1px solid rgba(107, 114, 128, 0.3); }
+  </style>
+</head>
+<body class="bg-[var(--background)] text-[var(--foreground)] antialiased p-4 md:p-6 min-h-screen">
+  <div class="max-w-7xl mx-auto space-y-6">
+    
+    <!-- Top Header & Navigation -->
+    <header class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2.5">
+            <span class="text-2xl">💰</span>
+            <h1 class="text-xl md:text-2xl font-bold tracking-tight text-[var(--foreground)]">《骑马与砍杀》跑商物价与推荐路线</h1>
+          </div>
+          <p class="text-sm text-[var(--muted-foreground)] mt-1">涵盖 19 种商品价格全览、详细进销对账表，以及按站指导的暴利跑商路线</p>
+        </div>
+
+        <!-- Tab Toggle Buttons -->
+        <div class="flex items-center bg-[var(--background)] p-1 rounded-xl border border-[var(--border)] self-start md:self-auto">
+          <button id="tabBtn1" onclick="switchTab(1)" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            📊 表一：商品利润总览
+          </button>
+          <button id="tabBtn2" onclick="switchTab(2)" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            🗺️ 表二：买卖路线明细
+          </button>
+          <button id="tabBtn3" onclick="switchTab(3)" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 bg-[var(--card)] text-[var(--foreground)] shadow-xs">
+            🚶 表三：推荐路线 (收益≥110)
+          </button>
+          <button id="tabBtn4" onclick="switchTab(4)" class="px-4 py-2 text-xs md:text-sm font-semibold rounded-lg transition-all duration-200 text-[var(--muted-foreground)] hover:text-[var(--foreground)]">
+            📑 附录
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats & Filters Bar -->
+      <div class="mt-4 pt-4 border-t border-[var(--border)] flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[var(--muted-foreground)] font-medium">势力图例：</span>
+          <span class="badge badge-swadia">斯瓦迪亚</span>
+          <span class="badge badge-rhodoks">罗多克</span>
+          <span class="badge badge-vaegirs">维基亚</span>
+          <span class="badge badge-nord">诺德</span>
+          <span class="badge badge-khergits">库吉特</span>
+          <span class="badge badge-sarranid">萨兰德</span>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="searchInput" placeholder="搜索商品、地点或势力..." oninput="handleSearch()"
+              class="w-full bg-[var(--background)] text-[var(--foreground)] border border-[var(--border)] rounded-lg pl-8 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-[var(--foreground)] placeholder-[var(--muted-foreground)]">
+            <span class="absolute left-2.5 top-1.5 text-xs text-[var(--muted-foreground)]">🔍</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- TAB 1: OVERVIEW TABLE -->
+    <section id="tabContent1" class="space-y-4 hidden">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-[var(--border)] flex items-center justify-between bg-opacity-50">
+          <div>
+            <h2 class="text-base font-bold text-[var(--foreground)]">商品价格与利润一览表 (19种)</h2>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">默认按理论最大差价排列；点击任意【商品名称】可直接跳转至表二查看该商品的买卖明细路线</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="sortOverview('profit')" class="text-xs px-2.5 py-1 rounded bg-[var(--background)] border border-[var(--border)] hover:border-gray-400 font-medium">
+              按利润排序
+            </button>
+            <button onclick="sortOverview('avg')" class="text-xs px-2.5 py-1 rounded bg-[var(--background)] border border-[var(--border)] hover:border-gray-400 font-medium">
+              按均价排序
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm border-collapse">
+            <thead>
+              <tr class="bg-[var(--background)] text-[var(--muted-foreground)] text-xs border-b border-[var(--border)]">
+                <th class="py-3 px-4 font-semibold w-12 text-center">排名</th>
+                <th class="py-3 px-4 font-semibold text-blue-400">类目 (点击直接跳转路线 🔗)</th>
+                <th class="py-3 px-4 font-semibold text-right">最低价格 (成本底线)</th>
+                <th class="py-3 px-4 font-semibold text-right">平均价格</th>
+                <th class="py-3 px-4 font-semibold text-right">最高价格 (出货上限)</th>
+                <th class="py-3 px-4 font-semibold text-right">最大盈利</th>
+                <th class="py-3 px-4 font-semibold w-48 text-center">盈利评级</th>
+              </tr>
+            </thead>
+            <tbody id="overviewTableBody" class="divide-y divide-[var(--border)]">
+              <!-- Dynamically populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: DETAILED TRADE ROUTES -->
+    <section id="tabContent2" class="space-y-4 hidden">
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-[var(--foreground)]">跑商路线与买卖明细对账表</h2>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">左侧为产地与低价买入点，右侧为缺货与高价出货点</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <select id="itemFilter" onchange="filterDetailedView()" class="bg-[var(--background)] text-[var(--foreground)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-xs focus:outline-none">
+              <option value="ALL">全部 19 种商品</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-[var(--background)] text-[var(--muted-foreground)] border-b border-[var(--border)]">
+                <th class="py-3 px-3 font-semibold w-24 text-center">商品</th>
+                <th class="py-3 px-3 font-semibold w-24">买入国家</th>
+                <th class="py-3 px-3 font-semibold">买入地点</th>
+                <th class="py-3 px-3 font-semibold text-right w-20">买入价格</th>
+                <th class="py-3 px-3 font-semibold w-24 border-l border-[var(--border)]">卖出国家</th>
+                <th class="py-3 px-3 font-semibold">卖出地点</th>
+                <th class="py-3 px-3 font-semibold text-right w-20">卖出价格</th>
+                <th class="py-3 px-3 font-semibold text-center w-28 border-l border-[var(--border)]">净利上限</th>
+              </tr>
+            </thead>
+            <tbody id="detailedTableBody" class="divide-y divide-[var(--border)]">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: RECOMMENDED ROUTES (ACTIVE BY DEFAULT) -->
+    <section id="tabContent3" class="space-y-6">
+      <!-- Route 1 Intro Banner -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[var(--border)] pb-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-md text-xs font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">路线 #1</span>
+              <h2 class="text-lg font-bold text-[var(--foreground)]">北海雪原 ⇄ 草原腹地黄金闭环商路</h2>
+            </div>
+            <p class="text-xs text-[var(--muted-foreground)] mt-1">
+              路线轨迹：<strong class="text-[var(--foreground)]">窝车则 ➔ 日瓦车则 ➔ 库劳 ➔ 日瓦丁 ➔ 艾车莫尔 ➔ 图尔加</strong>，然后<strong class="text-amber-500">原路掉头折返</strong>回到窝车则。
+            </p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <span class="text-xs text-[var(--muted-foreground)] block">筛选阈值</span>
+              <span class="text-xs font-bold text-emerald-400">只做单件净利 ≥ 110 第纳尔</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Route Summary Tags -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="bg-[var(--background)] p-3 rounded-xl border border-[var(--border)]">
+            <span class="text-[var(--muted-foreground)] block">核心暴利货物</span>
+            <span class="font-bold text-amber-400 text-sm">天鹅绒 (+636) / 生铁 (+214)</span>
+          </div>
+          <div class="bg-[var(--background)] p-3 rounded-xl border border-[var(--border)]">
+            <span class="text-[var(--muted-foreground)] block">中转稳定暴利</span>
+            <span class="font-bold text-emerald-400 text-sm">盐 (+211) / 香料 (+581)</span>
+          </div>
+          <div class="bg-[var(--background)] p-3 rounded-xl border border-[var(--border)]">
+            <span class="text-[var(--muted-foreground)] block">往返总耗时</span>
+            <span class="font-bold text-[var(--foreground)] text-sm">约 4~6 游戏日</span>
+          </div>
+          <div class="bg-[var(--background)] p-3 rounded-xl border border-[var(--border)]">
+            <span class="text-[var(--muted-foreground)] block">单趟满仓估算净利</span>
+            <span class="font-bold text-emerald-400 text-sm">8,000 ~ 15,000+ 💰</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Merged Round-Trip Route Table -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-[var(--border)] bg-opacity-50 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h3 class="font-bold text-sm text-[var(--foreground)]">🔄 路线 #1 往返一体化买卖指南（单件净利 ≥ 110 第纳尔）</h3>
+            <p class="text-xs text-[var(--muted-foreground)] mt-0.5">同一站点并排对照：左侧去程操作（向南），右侧返程操作（北归折返），无需上下滚动</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="badge badge-nord">去程：窝车则 ➔ 图尔加</span>
+            <span class="text-[var(--muted-foreground)]">⇄</span>
+            <span class="badge badge-khergits">返程：图尔加 ➔ 窝车则</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-[var(--background)] text-[var(--muted-foreground)] border-b border-[var(--border)]">
+                <th class="py-3 px-3 font-semibold w-32 text-center">站点 / 势力</th>
+                <th class="py-3 px-4 font-semibold w-[36%] border-l border-[var(--border)] text-blue-400">
+                  🚀 去程操作（窝车则 ➔ 图尔加）
+                </th>
+                <th class="py-3 px-4 font-semibold w-[36%] border-l border-[var(--border)] text-amber-400">
+                  🔄 返程操作（图尔加 ➔ 窝车则）
+                </th>
+                <th class="py-3 px-3 font-semibold border-l border-[var(--border)]">💡 站点与周边秘诀</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-[var(--border)] text-xs">
+              <!-- Stop 1: 窝车则 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">1. 窝车则</div>
+                  <div class="mt-1"><span class="badge badge-nord">诺德王国</span></div>
+                  <div class="text-[10px] text-emerald-400 font-medium mt-1">【始发 / 终点站】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-bold">🛒 必买：盐 (89)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+211 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">起步满仓装盐，运至下一站「日瓦车则」以 300 售出。</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-bold">💰 必卖：库劳生铁 (311)</span>
+                    <span class="font-mono text-emerald-400 font-bold text-sm">+214 盈利 🔥</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">全商路圆满闭环！出完生铁后立即重购廉价盐开启新一轮。</p>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  附属村「卢瓦尔」亦产盐(102)，运日瓦车则净赚 +198。
+                </td>
+              </tr>
+
+              <!-- Stop 2: 日瓦车则 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">2. 日瓦车则</div>
+                  <div class="mt-1"><span class="badge badge-vaegirs">维基亚</span></div>
+                  <div class="text-[10px] text-amber-400 font-medium mt-1">【天鹅绒兑现都城】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-bold">💰 必卖：窝车则盐 (300)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+211 盈利</span>
+                  </div>
+                  <div class="flex items-center justify-between pt-1">
+                    <span class="text-emerald-500 font-medium">🛒 顺带买：羊毛 (63)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+161 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">倾销盐变现；经附属村「费斯德那」收羊毛去艾车莫尔卖。</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-bold">💰 必卖：图尔加天鹅绒 (1014)</span>
+                    <span class="font-mono text-amber-400 font-bold text-sm">+636 暴利！🔥</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-medium">💰 卖：图尔加盐 (300)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+181 盈利</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-medium">💰 卖：库劳工具 (410)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+119 盈利</span>
+                  </div>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  全大陆天鹅绒第一收购点，返程在此瞬间落袋巨额现金。
+                </td>
+              </tr>
+
+              <!-- Stop 3: 库劳 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">3. 库劳</div>
+                  <div class="mt-1"><span class="badge badge-vaegirs">维基亚</span></div>
+                  <div class="text-[10px] text-emerald-400 font-medium mt-1">【第一铁矿之城】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-bold">🛒 必买：生铁 (97)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+198 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">全仓抄底生铁，带往草原「艾车莫尔/图尔加」以 295 售出。</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-bold">🛒 二次买：生铁 (97)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+214 盈利</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-medium">💰 选卖：香料 (880)</span>
+                    <span class="font-mono text-amber-400 font-bold">+599 暴利</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-medium">🛒 顺带买：工具 (291)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+119 盈利</span>
+                  </div>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  若主城铁被买空，附属村「奥穆尔」生铁 147 亦可补仓。
+                </td>
+              </tr>
+
+              <!-- Stop 4: 日瓦丁 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">4. 日瓦丁</div>
+                  <div class="mt-1"><span class="badge badge-vaegirs">维基亚</span></div>
+                  <div class="text-[10px] text-[var(--muted-foreground)] font-medium mt-1">【雪原中转站】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-400 font-medium">📦 备用卖：余盐 (272)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+183 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">若前站盐未售罄在此清空；通常携带生铁快速过境南下。</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-400 font-medium">📦 备用卖：图尔加余盐 (272)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+153 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">北归补给点，高价值天鹅绒保留至日瓦车则再卖。</p>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  交通中枢，可用于补充粮食与雇佣兵源。
+                </td>
+              </tr>
+
+              <!-- Stop 5: 艾车莫尔 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">5. 艾车莫尔</div>
+                  <div class="mt-1"><span class="badge badge-khergits">库吉特</span></div>
+                  <div class="text-[10px] text-amber-400 font-medium mt-1">【草原出货门户】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-bold">💰 必卖：库劳生铁 (295)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+198 盈利</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-medium">💰 卖：费斯德那羊毛 (224)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+161 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">大笔卸出生铁腾出仓位，收取现金。</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="text-gray-400 font-medium">📦 北归通道：快速穿行</div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">不占用宝贵仓位，直奔维基亚雪原核心市场。</p>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  草原骑兵活动区，注意队伍行军速度防范响马偷袭。
+                </td>
+              </tr>
+
+              <!-- Stop 6: 图尔加 -->
+              <tr class="hover:bg-[var(--background)]/60 transition-colors bg-[var(--background)]/30">
+                <td class="py-3 px-3 text-center align-top bg-[var(--card)]">
+                  <div class="font-bold text-sm text-[var(--foreground)]">6. 图尔加</div>
+                  <div class="mt-1"><span class="badge badge-khergits">库吉特</span></div>
+                  <div class="text-[10px] text-red-400 font-bold mt-1">【折返掉头中心】</div>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1">
+                  <div class="flex items-center justify-between">
+                    <span class="text-red-400 font-bold">💰 必卖：剩余生铁 (295)</span>
+                    <span class="font-mono text-emerald-400 font-bold">+198 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-amber-400 font-semibold">🚩 去程终点抵达！生铁彻底清仓，准备掉头折返！</p>
+                </td>
+                <td class="py-3 px-4 border-l border-[var(--border)] align-top space-y-1.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-bold">🛒 必抢：天鹅绒 (378)</span>
+                    <span class="font-mono text-amber-400 font-bold text-sm">+636 暴利！🔥</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-emerald-500 font-medium">🛒 备选：盐 (119)</span>
+                    <span class="font-mono text-emerald-400 font-semibold">+181 盈利</span>
+                  </div>
+                  <p class="text-[11px] text-[var(--muted-foreground)]">运回日瓦车则卖出，天鹅绒是全游戏单格利润之王。</p>
+                </td>
+                <td class="py-3 px-3 border-l border-[var(--border)] align-top text-[var(--muted-foreground)] leading-relaxed">
+                  图尔加周边村「达斯贝法」可购香料(281)，去库劳卖880(净赚 +599)。
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- TAB 4: APPENDIX (骑马与砍杀杂项速查) -->
+    <section id="tabContent4" class="space-y-5 hidden">
+      
+      <!-- 1. NPC 分组与阵容 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-4">
+        <h3 class="font-bold text-base text-[var(--foreground)] border-b border-[var(--border)] pb-2.5">
+          一、NPC 8人互不吵架分组与阵容推荐
+        </h3>
+        
+        <div class="space-y-2 text-xs">
+          <p class="font-semibold text-[var(--foreground)]">【分组规则】</p>
+          <ul class="list-disc list-inside space-y-1 text-[var(--muted-foreground)]">
+            <li><strong>A组</strong>：艾雷恩、贝斯图尔、法提斯</li>
+            <li><strong>B组</strong>：凯特琳、马尼德、尼扎</li>
+            <li><strong>Z组</strong>：雅米拉、德赛维、杰姆斯、班达克、克雷斯</li>
+            <li><strong>X组</strong>：波尔茶、雷萨里特、亚提曼、罗尔夫、马蒂尔德</li>
+          </ul>
+          <p class="text-amber-500 font-medium pt-1">
+            📌 规则公式：AB 中选一组，XZ 中选一组，组合即为 8 个互不吵架的稳定阵容。
+          </p>
+        </div>
+
+        <div class="pt-2">
+          <p class="text-xs font-semibold text-[var(--foreground)] mb-2">【举例阵容：A组 + Z组】</p>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-[var(--background)] text-[var(--muted-foreground)] border-b border-[var(--border)]">
+                  <th class="py-2.5 px-3 font-semibold w-20">NPC</th>
+                  <th class="py-2.5 px-3 font-semibold w-28">定位</th>
+                  <th class="py-2.5 px-3 font-semibold w-24">属性主加</th>
+                  <th class="py-2.5 px-3 font-semibold w-48">核心专精技能</th>
+                  <th class="py-2.5 px-3 font-semibold">装备与作战建议</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[var(--border)] text-xs">
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">杰姆斯</td>
+                  <td class="py-2 px-3 text-emerald-400">首席军医</td>
+                  <td class="py-2 px-3">纯智力</td>
+                  <td class="py-2 px-3">手术、急救、疗伤、教练</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">穿最厚板甲、拿大盾，战斗时原地坚守后方，严禁冲锋阵亡</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">德赛维</td>
+                  <td class="py-2 px-3 text-sky-400">首席侦察兵</td>
+                  <td class="py-2 px-3">敏捷 / 智力</td>
+                  <td class="py-2 px-3">向导、侦察、跟踪、教练</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">极速骏马 + 极品战弓，远程游击输出</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">雅米拉</td>
+                  <td class="py-2 px-3 text-emerald-400">副医 / 贸易</td>
+                  <td class="py-2 px-3">纯智力</td>
+                  <td class="py-2 px-3">急救、工程、交易、教练</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">辅助后勤，跟在杰姆斯身边保命</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">班达克</td>
+                  <td class="py-2 px-3 text-blue-400">工兵 / 弩手</td>
+                  <td class="py-2 px-3">力量 / 敏捷</td>
+                  <td class="py-2 px-3">强击、铁骨、骑术、武器掌握</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">重弩 + 阔盾 + 钝器锤（攻城主力，兼顾工程）</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">克雷斯</td>
+                  <td class="py-2 px-3 text-purple-400">飞斧刺客 / 侦察</td>
+                  <td class="py-2 px-3">力量 / 敏捷</td>
+                  <td class="py-2 px-3">强击、铁骨、骑术、武器掌握</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">轻骑兵，带标枪/飞斧打游击与战后收割</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">艾雷恩</td>
+                  <td class="py-2 px-3 text-red-400 font-semibold">冲锋第一猛男</td>
+                  <td class="py-2 px-3">力量 / 敏捷</td>
+                  <td class="py-2 px-3">强击、铁骨、骑术、武器掌握</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">重战马 + 重骑枪 + 单手阔剑 + 重甲（贵族，未来可封臣）</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">法提斯</td>
+                  <td class="py-2 px-3 text-red-400 font-semibold">正义游侠打手</td>
+                  <td class="py-2 px-3">力量 / 敏捷</td>
+                  <td class="py-2 px-3">强击、铁骨、骑术、武器掌握</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">重骑兵标配（贵族，未来可封臣）</td>
+                </tr>
+                <tr class="hover:bg-[var(--background)]/60">
+                  <td class="py-2 px-3 font-bold text-[var(--foreground)]">贝斯图尔</td>
+                  <td class="py-2 px-3 text-red-400 font-semibold">大陆第一骑射</td>
+                  <td class="py-2 px-3">力量 / 敏捷</td>
+                  <td class="py-2 px-3">强击、铁骨、骑术、武器掌握</td>
+                  <td class="py-2 px-3 text-[var(--muted-foreground)]">库吉特骏马 + 强弓 + 大袋箭 + 弯刀（贵族，未来可封臣）</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-[var(--background)] border border-[var(--border)] text-xs leading-relaxed text-[var(--muted-foreground)]">
+          <strong class="text-amber-500">💡 提醒：</strong>只要全员升到 15 级以上，无论什么定位，每人身上都要点 3~5 级【教练（Trainer）】。每天凌晨全队教练叠加，进城睡几天就能直接将新兵爆兵成斯瓦迪亚骑士或诺德皇家侍卫。
+        </div>
+      </div>
+
+      <!-- 2. 全大陆建厂指南 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-3">
+        <h3 class="font-bold text-base text-[var(--foreground)] border-b border-[var(--border)] pb-2.5">
+          二、全大陆建厂指南
+        </h3>
+        <ul class="list-disc list-inside text-xs space-y-1.5 text-[var(--muted-foreground)]">
+          <li><strong>维鲁加</strong>：建造橄榄油厂</li>
+          <li><strong>杰尔喀拉</strong>：建造皮革厂 或 橄榄油厂</li>
+          <li><strong>苏诺</strong>：建造皮革厂</li>
+          <li><strong>其他所有城镇</strong>：一律建造<strong class="text-[var(--foreground)]">天鹅绒厂</strong>收益最大</li>
+        </ul>
+      </div>
+
+      <!-- 3. 武器排行与配装心得 -->
+      <div class="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-5 shadow-sm space-y-4">
+        <h3 class="font-bold text-base text-[var(--foreground)] border-b border-[var(--border)] pb-2.5">
+          三、实用武器与配装推荐
+        </h3>
+
+        <!-- 场景最强武器 -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-semibold text-[var(--foreground)]">【场景武器排名】</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">骑马最强单手：</span><span class="font-bold text-[var(--foreground)]">钉头锤</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">骑马最强长杆：</span><span class="font-bold text-[var(--foreground)]">长锥头枪</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">骑马最强双手：</span><span class="font-bold text-[var(--foreground)]">战争之剑</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">守城最强双手：</span><span class="font-bold text-[var(--foreground)]">钉头锤</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">守城最强单手：</span><span class="font-bold text-[var(--foreground)]">军用锄</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">攻城最强单手：</span><span class="font-bold text-[var(--foreground)]">单手战斗斧</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">攻城最强双手：</span><span class="font-bold text-red-400">你这是找死</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">步战最强单手：</span><span class="font-bold text-[var(--foreground)]">尖头杖</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">步战最强双手：</span><span class="font-bold text-[var(--foreground)]">钉头锤</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">步战最强长杆：</span><span class="font-bold text-[var(--foreground)]">长柄战锤</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">杀低级兵神器：</span><span class="font-bold text-[var(--foreground)]">精锐弯刀</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">最全能单手：</span><span class="font-bold text-amber-400">直刃军用刀</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">最强盾牌：</span><span class="font-bold text-[var(--foreground)]">诺皇盾</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">投掷武器：</span><span class="font-bold text-[var(--foreground)]">短标枪？</span>
+            </div>
+            <div class="bg-[var(--background)] p-2.5 rounded-lg border border-[var(--border)]">
+              <span class="text-[var(--muted-foreground)]">战略作弊器：</span><span class="font-bold text-emerald-400">战弓</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 个人推荐配置 -->
+        <div class="space-y-3 pt-2">
+          <h4 class="text-xs font-semibold text-[var(--foreground)]">【个人推荐配装】</h4>
+          
+          <div class="space-y-1.5 text-xs">
+            <p class="font-medium text-[var(--foreground)]">👤 玩家个人：</p>
+            <ul class="list-disc list-inside space-y-1 pl-2 text-[var(--muted-foreground)]">
+              <li><strong>野外方案 1</strong>：战弓 + 箭 + 诺皇盾 + 直刃军用刀</li>
+              <li><strong>野外方案 2</strong>：长锥头枪 + 诺皇盾 x 2 + 直刃军用刀</li>
+              <li><strong>守城</strong>：战弓 + 箭 x 2 + 钉头锤</li>
+              <li><strong>攻城</strong>：战弓 + 箭 x 2 + 诺皇盾</li>
+            </ul>
+          </div>
+
+          <div class="space-y-1.5 text-xs pt-1">
+            <p class="font-medium text-[var(--foreground)]">🛡️ NPC 队员：</p>
+            <ul class="list-disc list-inside space-y-1 pl-2 text-[var(--muted-foreground)]">
+              <li>
+                <strong>骑士</strong>：直刃军用刀（推荐配 2 个盾，适用所有场景。极品约40砍，平衡38砍。钉头锤单手步战偏弱，锤锄斧马战太短，精锐弯刀攻击偏低开不动罐头）
+              </li>
+              <li>
+                <strong>射手</strong>：战弓 + 箭（或 攻城弩 + 弩箭）＋ 钉头锤
+              </li>
+              <li>
+                <strong class="text-amber-500">NPC 换上第二个盾方法</strong>：使用钝器，再使用任意武器就会拿出背后的盾，推攻城车时很实用。
+              </li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Footer Tips -->
+    <footer class="bg-[var(--card)] border border-[var(--border)] rounded-xl p-4 text-xs text-[var(--muted-foreground)] flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div class="flex items-center gap-2">
+        <span class="text-amber-500 font-bold">💡 跑商路线小贴士：</span>
+        <span>此路线商贸频繁，沿途尽量配备若干骑兵防备响马（库吉特境）与海寇（雪原北境）。</span>
+      </div>
+      <div>
+        <span>数据来源：物价表还原分析</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // --- DATA STORE ---
+    const overviewData = [
+      { name: "生丝", avg: 534, max: 792, min: 66, profit: 726 },
+      { name: "香料", avg: 769, max: 906, min: 281, profit: 625 },
+      { name: "天鹅绒", avg: 980, max: 1014, min: 666, profit: 348 },
+      { name: "毛皮", avg: 342, max: 414, min: 92, profit: 322 },
+      { name: "生铁", avg: 260, max: 311, min: 97, profit: 214 },
+      { name: "盐", avg: 210, max: 300, min: 89, profit: 211 },
+      { name: "枣肉", avg: 88, max: 217, min: 16, profit: 201 },
+      { name: "羊毛", avg: 128, max: 224, min: 40, profit: 184 },
+      { name: "染料", avg: 153, max: 220, min: 36, profit: 184 },
+      { name: "葡萄酒", avg: 201, max: 286, min: 125, profit: 161 },
+      { name: "亚麻捆", avg: 131, max: 223, min: 73, profit: 150 },
+      { name: "油", avg: 425, max: 472, min: 333, profit: 139 },
+      { name: "亚麻布", avg: 236, max: 282, min: 157, profit: 125 },
+      { name: "工具", avg: 376, max: 410, min: 291, profit: 119 },
+      { name: "兽皮", avg: 130, max: 169, min: 61, profit: 108 },
+      { name: "陶器", avg: 86, max: 122, min: 23, profit: 99 },
+      { name: "麦芽酒", avg: 103, max: 134, min: 45, profit: 89 },
+      { name: "毛呢", avg: 219, max: 262, min: 187, profit: 75 },
+      { name: "皮革制品", avg: 203, max: 224, min: 176, profit: 48 }
+    ];
+
+    const detailedData = [
+      {
+        name: "工具",
+        buys: [
+          { faction: "维基亚", place: "库劳", price: 291 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 336 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 410 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 397 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 397 }
+        ]
+      },
+      {
+        name: "麦芽酒",
+        buys: [
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 67 },
+          { faction: "斯瓦迪亚", place: "艾尔贝尔", price: 45 },
+          { faction: "斯瓦迪亚", place: "维达", price: 81 },
+          { faction: "斯瓦迪亚", place: "哥斯莫", price: 58 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 134 },
+          { faction: "维基亚", place: "日瓦丁", price: 121 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 117 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 120 },
+          { faction: "罗多克", place: "亚伦", price: 132 }
+        ]
+      },
+      {
+        name: "毛呢",
+        buys: [
+          { faction: "维基亚", place: "日瓦车则", price: 187 },
+          { faction: "萨兰德", place: "沙瑞兹", price: 187 },
+          { faction: "库吉特", place: "艾车莫尔", price: 202 }
+        ],
+        sells: [
+          { faction: "库吉特", place: "图尔加", price: 235 },
+          { faction: "斯瓦迪亚", place: "苏诺", price: 252 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 262 },
+          { faction: "罗多克", place: "维鲁加", price: 245 },
+          { faction: "罗多克", place: "亚伦", price: 257 }
+        ]
+      },
+      {
+        name: "毛皮",
+        buys: [
+          { faction: "库吉特", place: "达斯贝法", price: 92 },
+          { faction: "斯瓦迪亚", place: "依林达哈", price: 254 },
+          { faction: "斯瓦迪亚", place: "卢伦斯", price: 246 }
+        ],
+        sells: [
+          { faction: "萨兰德", place: "沙瑞兹", price: 410 },
+          { faction: "萨兰德", place: "阿默拉德", price: 402 },
+          { faction: "萨兰德", place: "都库巴", price: 402 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 414 },
+          { faction: "库吉特", place: "拉那", price: 394 },
+          { faction: "库吉特", place: "哈尔玛", price: 402 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 410 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 406 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 410 },
+          { faction: "罗多克", place: "维鲁加", price: 410 },
+          { faction: "罗多克", place: "亚伦", price: 410 }
+        ]
+      },
+      {
+        name: "皮革制品",
+        buys: [
+          { faction: "诺德", place: "窝车则", price: 189 },
+          { faction: "维基亚", place: "日瓦车则", price: 176 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "库劳", price: 211 },
+          { faction: "萨兰德", place: "阿默拉德", price: 215 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 224 }
+        ]
+      },
+      {
+        name: "葡萄酒",
+        buys: [
+          { faction: "诺德", place: "萨哥斯", price: 125 },
+          { faction: "罗多克", place: "维鲁加", price: 127 },
+          { faction: "罗多克", place: "亚伦", price: 127 }
+        ],
+        sells: [
+          { faction: "萨兰德", place: "沙瑞兹", price: 286 },
+          { faction: "萨兰德", place: "阿默拉德", price: 266 },
+          { faction: "萨兰德", place: "都库巴", price: 268 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 275 }
+        ]
+      },
+      {
+        name: "陶器",
+        buys: [
+          { faction: "萨兰德", place: "沙瑞兹", price: 61 },
+          { faction: "萨兰德", place: "鲁什戴尔", price: 42 },
+          { faction: "萨兰德", place: "黑巴伊", price: 23 },
+          { faction: "萨兰德", place: "什巴·祖默", price: 31 },
+          { faction: "萨兰德", place: "都库巴", price: 54 },
+          { faction: "萨兰德", place: "塔姆努", price: 37 },
+          { faction: "萨兰德", place: "色库腾", price: 57 },
+          { faction: "萨兰德", place: "哈巴", price: 55 },
+          { faction: "萨兰德", place: "马维提", price: 13 },
+          { faction: "萨兰德", place: "米加耶特", price: 61 },
+          { faction: "萨兰德", place: "阿波", price: 38 },
+          { faction: "萨兰德", place: "阿默拉德", price: 46 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 44 },
+          { faction: "库吉特", place: "哈尔玛", price: 57 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 114 },
+          { faction: "诺德", place: "提哈", price: 112 },
+          { faction: "维基亚", place: "日瓦车则", price: 104 },
+          { faction: "维基亚", place: "图尔加", price: 106 },
+          { faction: "斯瓦迪亚", place: "苏诺", price: 109 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 120 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 111 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 107 },
+          { faction: "罗多克", place: "亚伦", price: 122 }
+        ]
+      },
+      {
+        name: "天鹅绒",
+        buys: [
+          { faction: "罗多克", place: "杰尔喀拉", price: 666 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 501 },
+          { faction: "库吉特", place: "图尔加", price: 378 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 1014 },
+          { faction: "诺德", place: "窝车则", price: 897 },
+          { faction: "诺德", place: "提哈", price: 880 },
+          { faction: "诺德", place: "萨哥斯", price: 880 }
+        ]
+      },
+      {
+        name: "香料",
+        buys: [
+          { faction: "萨兰德", place: "德瑞法·阿班", price: 387 },
+          { faction: "库吉特", place: "达斯贝法", price: 281 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 862 },
+          { faction: "维基亚", place: "库劳", price: 880 },
+          { faction: "维基亚", place: "库丹", price: 871 },
+          { faction: "萨兰德", place: "都库巴", price: 880 },
+          { faction: "萨兰德", place: "阿默拉德", price: 906 },
+          { faction: "斯瓦迪亚", place: "苏诺", price: 871 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 880 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 871 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 880 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 871 },
+          { faction: "罗多克", place: "维鲁加", price: 871 },
+          { faction: "罗多克", place: "亚伦", price: 880 }
+        ]
+      },
+      {
+        name: "亚麻布",
+        buys: [
+          { faction: "诺德", place: "萨哥斯", price: 157 }
+        ],
+        sells: [
+          { faction: "萨兰德", place: "沙瑞兹", price: 282 },
+          { faction: "萨兰德", place: "阿默拉德", price: 272 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 277 }
+        ]
+      },
+      {
+        name: "亚麻捆",
+        buys: [
+          { faction: "库吉特", place: "提里姆萨", price: 81 },
+          { faction: "库吉特", place: "克德尔克", price: 73 },
+          { faction: "库吉特", place: "阿乎恩", price: 79 },
+          { faction: "库吉特", place: "塔斯库·鲁姆", price: 79 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 81 }
+        ],
+        sells: [
+          { faction: "萨兰德", place: "都库巴", price: 210 }
+        ]
+      },
+      {
+        name: "盐",
+        buys: [
+          { faction: "诺德", place: "卢瓦尔", price: 102 },
+          { faction: "诺德", place: "窝车则", price: 89 },
+          { faction: "萨兰德", place: "奇巴伊", price: 91 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 99 },
+          { faction: "库吉特", place: "达斯图欧", price: 112 },
+          { faction: "库吉特", place: "图尔加", price: 119 },
+          { faction: "库吉特", place: "达斯贝法", price: 107 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 300 },
+          { faction: "维基亚", place: "库劳", price: 277 },
+          { faction: "维基亚", place: "日瓦丁", price: 272 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 298 },
+          { faction: "罗多克", place: "亚伦", price: 283 }
+        ]
+      },
+      {
+        name: "羊毛",
+        buys: [
+          { faction: "诺德", place: "杰耶克", price: 40 },
+          { faction: "维基亚", place: "费斯德那", price: 63 },
+          { faction: "维基亚", place: "巴泽克", price: 88 },
+          { faction: "维基亚", place: "卡伦迪", price: 81 },
+          { faction: "萨兰德", place: "阿安·阿苏迪", price: 88 },
+          { faction: "库吉特", place: "达斯贝法", price: 76 },
+          { faction: "斯瓦迪亚", place: "哥斯莫", price: 70 },
+          { faction: "斯瓦迪亚", place: "托斯德尔", price: 72 },
+          { faction: "斯瓦迪亚", place: "乌鲁达纳", price: 74 },
+          { faction: "罗多克", place: "德瑞格森", price: 75 },
+          { faction: "罗多克", place: "伊欧薇雅", price: 71 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 187 },
+          { faction: "维基亚", place: "日瓦车则", price: 189 },
+          { faction: "维基亚", place: "日瓦丁", price: 171 },
+          { faction: "库吉特", place: "艾车莫尔", price: 224 },
+          { faction: "库吉特", place: "哈尔玛", price: 172 }
+        ]
+      },
+      {
+        name: "油",
+        buys: [
+          { faction: "斯瓦迪亚", place: "苏诺", price: 333 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 346 },
+          { faction: "罗多克", place: "亚伦", price: 342 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 472 }
+        ]
+      },
+      {
+        name: "染料",
+        buys: [
+          { faction: "萨兰德", place: "哈巴", price: 26 },
+          { faction: "萨兰德", place: "阿波", price: 36 },
+          { faction: "萨兰德", place: "阿默拉德", price: 78 },
+          { faction: "萨兰德", place: "费沙拉", price: 68 },
+          { faction: "萨兰德", place: "乌丽亚", price: 66 },
+          { faction: "萨兰德", place: "乌兹汗", price: 36 },
+          { faction: "萨兰德", place: "塔居纳特", price: 50 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 114 },
+          { faction: "罗多克", place: "巴甫伦", price: 82 },
+          { faction: "罗多克", place: "鲁迪", price: 74 },
+          { faction: "罗多克", place: "艾泊德勒斯", price: 80 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 206 },
+          { faction: "诺德", place: "提哈", price: 204 },
+          { faction: "诺德", place: "萨哥斯", price: 202 },
+          { faction: "维基亚", place: "日瓦车则", price: 204 },
+          { faction: "维基亚", place: "库劳", price: 200 },
+          { faction: "维基亚", place: "日瓦丁", price: 202 },
+          { faction: "维基亚", place: "库丹", price: 202 },
+          { faction: "库吉特", place: "图尔加", price: 184 },
+          { faction: "库吉特", place: "拉那", price: 174 },
+          { faction: "库吉特", place: "哈尔玛", price: 196 },
+          { faction: "库吉特", place: "艾车莫尔", price: 204 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 204 },
+          { faction: "斯瓦迪亚", place: "德赫瑞姆", price: 200 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 204 },
+          { faction: "斯瓦迪亚", place: "苏诺", price: 216 },
+          { faction: "罗多克", place: "维鲁加", price: 220 },
+          { faction: "罗多克", place: "亚伦", price: 207 }
+        ]
+      },
+      {
+        name: "生丝",
+        buys: [
+          { faction: "维基亚", place: "乌迪尼拉德", price: 66 },
+          { faction: "维基亚", place: "日瓦车则", price: 180 },
+          { faction: "维基亚", place: "费斯德那", price: 66 },
+          { faction: "维基亚", place: "夏普斯特", price: 330 }
+        ],
+        sells: [
+          { faction: "斯瓦迪亚", place: "苏诺", price: 726 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 714 },
+          { faction: "罗多克", place: "维鲁加", price: 792 }
+        ]
+      },
+      {
+        name: "生铁",
+        buys: [
+          { faction: "维基亚", place: "库劳", price: 97 },
+          { faction: "维基亚", place: "奥穆尔", price: 147 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 311 },
+          { faction: "诺德", place: "萨哥斯", price: 306 },
+          { faction: "萨兰德", place: "巴瑞耶", price: 293 },
+          { faction: "库吉特", place: "图尔加", price: 295 },
+          { faction: "库吉特", place: "艾车莫尔", price: 295 }
+        ]
+      },
+      {
+        name: "兽皮",
+        buys: [
+          { faction: "诺德", place: "提哈", price: 97 },
+          { faction: "诺德", place: "布尤恩", price: 84 },
+          { faction: "维基亚", place: "乌迪尼拉德", price: 61 },
+          { faction: "维基亚", place: "依斯摩罗拉", price: 99 },
+          { faction: "维基亚", place: "瑞巴奇", price: 79 },
+          { faction: "维基亚", place: "库劳", price: 94 },
+          { faction: "维基亚", place: "色雷兹克", price: 88 },
+          { faction: "维基亚", place: "哈嫩", price: 86 },
+          { faction: "斯瓦迪亚", place: "依林达哈", price: 86 },
+          { faction: "罗多克", place: "艾泊德勒斯", price: 88 },
+          { faction: "罗多克", place: "德瑞格森", price: 93 }
+        ],
+        sells: [
+          { faction: "维基亚", place: "日瓦车则", price: 169 },
+          { faction: "萨兰德", place: "沙瑞兹", price: 158 }
+        ]
+      },
+      {
+        name: "枣肉",
+        buys: [
+          { faction: "萨兰德", place: "沙瑞兹", price: 52 },
+          { faction: "萨兰德", place: "阿安·阿苏迪", price: 44 },
+          { faction: "萨兰德", place: "鲁什戴尔", price: 45 },
+          { faction: "萨兰德", place: "黑巴伊", price: 44 },
+          { faction: "萨兰德", place: "括乌特", price: 45 },
+          { faction: "萨兰德", place: "什巴·祖默", price: 39 },
+          { faction: "萨兰德", place: "色库腾", price: 37 },
+          { faction: "萨兰德", place: "马兹根", price: 16 },
+          { faction: "萨兰德", place: "哈巴", price: 43 },
+          { faction: "萨兰德", place: "马维提", price: 54 },
+          { faction: "萨兰德", place: "奇巴伊", price: 32 },
+          { faction: "萨兰德", place: "费沙拉", price: 31 },
+          { faction: "萨兰德", place: "乌兹汗", price: 51 },
+          { faction: "萨兰德", place: "塔居纳特", price: 55 }
+        ],
+        sells: [
+          { faction: "诺德", place: "窝车则", price: 128 },
+          { faction: "诺德", place: "提哈", price: 128 },
+          { faction: "诺德", place: "萨哥斯", price: 126 },
+          { faction: "维基亚", place: "日瓦车则", price: 133 },
+          { faction: "维基亚", place: "库劳", price: 129 },
+          { faction: "维基亚", place: "库丹", price: 128 },
+          { faction: "维基亚", place: "日瓦丁", price: 124 },
+          { faction: "库吉特", place: "艾车莫尔", price: 129 },
+          { faction: "斯瓦迪亚", place: "苏诺", price: 126 },
+          { faction: "斯瓦迪亚", place: "帕拉汶", price: 217 },
+          { faction: "斯瓦迪亚", place: "乌克斯豪尔", price: 122 },
+          { faction: "罗多克", place: "杰尔喀拉", price: 130 },
+          { faction: "罗多克", place: "维鲁加", price: 120 },
+          { faction: "罗多克", place: "亚伦", price: 130 }
+        ]
+      }
+    ];
+
+    function getFactionBadge(faction) {
+      if (!faction) return '<span class="badge badge-neutral">-</span>';
+      switch(faction) {
+        case "斯瓦迪亚": return '<span class="badge badge-swadia">斯瓦迪亚</span>';
+        case "罗多克": return '<span class="badge badge-rhodoks">罗多克</span>';
+        case "维基亚": return '<span class="badge badge-vaegirs">维基亚</span>';
+        case "诺德": return '<span class="badge badge-nord">诺德</span>';
+        case "库吉特": return '<span class="badge badge-khergits">库吉特</span>';
+        case "萨兰德": return '<span class="badge badge-sarranid">萨兰德</span>';
+        default: return `<span class="badge badge-neutral">${faction}</span>`;
+      }
+    }
+
+    function getProfitBadge(profit) {
+      if (profit >= 500) return '<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-500 border border-amber-500/30">🔥 特级暴利</span>';
+      if (profit >= 250) return '<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-500 border border-emerald-500/30">💎 高额利润</span>';
+      if (profit >= 150) return '<span class="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-500/20 text-blue-500 border border-blue-500/30">💰 稳定稳赚</span>';
+      return '<span class="px-2 py-0.5 rounded-full text-xs text-[var(--muted-foreground)] bg-gray-500/10 border border-gray-500/20">📦 普通走量</span>';
+    }
+
+    // Render Overview
+    let currentOverviewSort = 'profit';
+    let currentOverviewOrder = 'desc';
+
+    function jumpToDetailed(itemName) {
+      switchTab(2);
+      const searchInput = document.getElementById("searchInput");
+      if (searchInput && searchInput.value) {
+        searchInput.value = "";
+      }
+      const select = document.getElementById("itemFilter");
+      if (select) {
+        select.value = itemName;
+      }
+      renderDetailed(itemName);
+    }
+
+    function renderOverview(dataToRender = overviewData) {
+      const tbody = document.getElementById("overviewTableBody");
+      tbody.innerHTML = "";
+
+      dataToRender.forEach((item, idx) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-[var(--background)]/60 transition-colors";
+        tr.innerHTML = `
+          <td class="py-3 px-4 text-center font-mono font-bold text-xs ${idx < 3 ? 'text-amber-500' : 'text-[var(--muted-foreground)]'}">${idx + 1}</td>
+          <td class="py-3 px-4 font-bold">
+            <button onclick="jumpToDetailed('${item.name}')" class="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1.5 cursor-pointer text-left font-bold transition-colors" title="点击跳转至表二查看【${item.name}】的详细买卖路线">
+              <span>${item.name}</span>
+              <span class="text-[11px] text-[var(--muted-foreground)]">🔗</span>
+            </button>
+          </td>
+          <td class="py-3 px-4 text-right font-mono text-emerald-500 font-semibold">${item.min}</td>
+          <td class="py-3 px-4 text-right font-mono text-[var(--muted-foreground)]">${item.avg}</td>
+          <td class="py-3 px-4 text-right font-mono text-red-400 font-semibold">${item.max}</td>
+          <td class="py-3 px-4 text-right font-mono text-emerald-400 font-bold text-base">+${item.profit}</td>
+          <td class="py-3 px-4 text-center">${getProfitBadge(item.profit)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function sortOverview(key) {
+      if (currentOverviewSort === key) {
+        currentOverviewOrder = currentOverviewOrder === 'desc' ? 'asc' : 'desc';
+      } else {
+        currentOverviewSort = key;
+        currentOverviewOrder = 'desc';
+      }
+      overviewData.sort((a, b) => {
+        return currentOverviewOrder === 'desc' ? b[key] - a[key] : a[key] - b[key];
+      });
+      renderOverview();
+    }
+
+    // Render Detailed
+    function renderDetailed(filterItem = "ALL") {
+      const tbody = document.getElementById("detailedTableBody");
+      tbody.innerHTML = "";
+
+      const filtered = filterItem === "ALL" 
+        ? detailedData 
+        : detailedData.filter(d => d.name === filterItem);
+
+      filtered.forEach((item) => {
+        const maxRows = Math.max(item.buys.length, item.sells.length);
+
+        for (let i = 0; i < maxRows; i++) {
+          const buy = item.buys[i];
+          const sell = item.sells[i];
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-[var(--background)]/60 transition-colors border-b border-[var(--border)]";
+
+          let itemTd = '';
+          if (i === 0) {
+            itemTd = `<td rowspan="${maxRows}" class="py-3 px-3 font-bold text-center border-r border-[var(--border)] bg-[var(--card)] align-top text-sm text-[var(--foreground)]">${item.name}</td>`;
+          }
+
+          let buyFaction = buy ? getFactionBadge(buy.faction) : '-';
+          let buyPlace = buy ? buy.place : '-';
+          let buyPrice = buy ? `<span class="font-mono text-emerald-500 font-bold">${buy.price}</span>` : '-';
+
+          let sellFaction = sell ? getFactionBadge(sell.faction) : '-';
+          let sellPlace = sell ? sell.place : '-';
+          let sellPrice = sell ? `<span class="font-mono text-red-400 font-bold">${sell.price}</span>` : '-';
+
+          let note = '';
+          if (i === 0) {
+            const minBuy = Math.min(...item.buys.map(b => b.price));
+            const maxSell = Math.max(...item.sells.map(s => s.price));
+            note = `<td rowspan="${maxRows}" class="py-3 px-3 text-center border-l border-[var(--border)] align-middle">
+                      <span class="text-xs text-[var(--muted-foreground)] block">净利上限</span>
+                      <span class="text-emerald-400 font-mono font-bold text-sm">+${maxSell - minBuy}</span>
+                    </td>`;
+          }
+
+          tr.innerHTML = `
+            ${itemTd}
+            <td class="py-2.5 px-3">${buyFaction}</td>
+            <td class="py-2.5 px-3 font-medium text-[var(--foreground)]">${buyPlace}</td>
+            <td class="py-2.5 px-3 text-right">${buyPrice}</td>
+            <td class="py-2.5 px-3 border-l border-[var(--border)]">${sellFaction}</td>
+            <td class="py-2.5 px-3 font-medium text-[var(--foreground)]">${sellPlace}</td>
+            <td class="py-2.5 px-3 text-right">${sellPrice}</td>
+            ${note}
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    function populateItemFilter() {
+      const select = document.getElementById("itemFilter");
+      detailedData.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item.name;
+        opt.textContent = item.name;
+        select.appendChild(opt);
+      });
+    }
+
+    function filterDetailedView() {
+      const val = document.getElementById("itemFilter").value;
+      renderDetailed(val);
+    }
+
+    // Switch Tabs
+    function switchTab(idx) {
+      [1, 2, 3, 4].forEach(i => {
+        const content = document.getElementById(`tabContent${i}`);
+        const btn = document.getElementById(`tabBtn${i}`);
+        if (i === idx) {
+          content.classList.remove("hidden");
+          btn.classList.add("bg-[var(--card)]", "text-[var(--foreground)]", "shadow-xs");
+          btn.classList.remove("text-[var(--muted-foreground)]");
+        } else {
+          content.classList.add("hidden");
+          btn.classList.remove("bg-[var(--card)]", "text-[var(--foreground)]", "shadow-xs");
+          btn.classList.add("text-[var(--muted-foreground)]");
+        }
+      });
+    }
+
+    // Search Handler
+    function handleSearch() {
+      const q = document.getElementById("searchInput").value.trim().toLowerCase();
+      if (!q) {
+        renderOverview();
+        renderDetailed();
+        return;
+      }
+
+      // If user searches while on tab 3, also switch or show
+      const filteredOverview = overviewData.filter(item => item.name.toLowerCase().includes(q));
+      renderOverview(filteredOverview);
+
+      const filteredDetailed = detailedData.filter(item => {
+        if (item.name.toLowerCase().includes(q)) return true;
+        const buyMatch = item.buys.some(b => b.place.toLowerCase().includes(q) || b.faction.toLowerCase().includes(q));
+        const sellMatch = item.sells.some(s => s.place.toLowerCase().includes(q) || s.faction.toLowerCase().includes(q));
+        return buyMatch || sellMatch;
+      });
+
+      const tbody = document.getElementById("detailedTableBody");
+      tbody.innerHTML = "";
+      filteredDetailed.forEach((item) => {
+        const maxRows = Math.max(item.buys.length, item.sells.length);
+        for (let i = 0; i < maxRows; i++) {
+          const buy = item.buys[i];
+          const sell = item.sells[i];
+          const tr = document.createElement("tr");
+          tr.className = "hover:bg-[var(--background)]/60 transition-colors border-b border-[var(--border)]";
+          let itemTd = i === 0 ? `<td rowspan="${maxRows}" class="py-3 px-3 font-bold text-center border-r border-[var(--border)] bg-[var(--card)] align-top text-sm">${item.name}</td>` : '';
+          let note = i === 0 ? `<td rowspan="${maxRows}" class="py-3 px-3 text-center border-l border-[var(--border)] align-middle"><span class="text-emerald-400 font-mono font-bold">+${Math.max(...item.sells.map(s=>s.price)) - Math.min(...item.buys.map(b=>b.price))}</span></td>` : '';
+          tr.innerHTML = `
+            ${itemTd}
+            <td class="py-2.5 px-3">${buy ? getFactionBadge(buy.faction) : '-'}</td>
+            <td class="py-2.5 px-3 font-medium">${buy ? buy.place : '-'}</td>
+            <td class="py-2.5 px-3 text-right">${buy ? `<span class="font-mono text-emerald-500 font-bold">${buy.price}</span>` : '-'}</td>
+            <td class="py-2.5 px-3 border-l border-[var(--border)]">${sell ? getFactionBadge(sell.faction) : '-'}</td>
+            <td class="py-2.5 px-3 font-medium">${sell ? sell.place : '-'}</td>
+            <td class="py-2.5 px-3 text-right">${sell ? `<span class="font-mono text-red-400 font-bold">${sell.price}</span>` : '-'}</td>
+            ${note}
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      renderOverview();
+      renderDetailed();
+      populateItemFilter();
+      // default open tab 3
+      switchTab(3);
+    });
+  </script>
+</body>
+</html>
